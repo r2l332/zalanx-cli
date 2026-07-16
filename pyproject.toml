@@ -3,12 +3,12 @@ requires = ["hatchling>=1.24"]
 build-backend = "hatchling.build"
 
 [project]
-name = "zalanx-cli"
-version = "0.1.0"
-description = "Zalanx — zero-knowledge secrets for machines. CLI client."
+name = "zablo-cli"
+version = "0.2.0"
+description = "Zablo — zero-knowledge secrets for machines. CLI client."
 readme = "README.md"
 license = { text = "Apache-2.0" }
-authors = [{ name = "Zalanx" }]
+authors = [{ name = "Zablo" }]
 requires-python = ">=3.9"
 keywords = ["secrets", "vault", "zero-knowledge", "kms", "oidc", "workload-identity"]
 classifiers = [
@@ -45,20 +45,20 @@ dev = [
 ]
 
 [project.scripts]
-zalanx = "zalanx.main:app"
-zx = "zalanx.main:app"
+zablo = "zablo.main:app"
+zb = "zablo.main:app"
 
 [project.urls]
-Homepage = "https://zalanx.io"
-Documentation = "https://zalanx.io/docs"
-Repository = "https://github.com/zalanx/zalanx-cli"
-Issues = "https://github.com/zalanx/zalanx-cli/issues"
+Homepage = "https://zablo.io"
+Documentation = "https://zablo.io/docs"
+Repository = "https://github.com/zablo/zablo-cli"
+Issues = "https://github.com/zablo/zablo-cli/issues"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/zalanx"]
+packages = ["src/zablo"]
 
 [tool.hatch.build.targets.sdist]
-include = ["src/zalanx", "README.md", "LICENSE"]
+include = ["src/zablo", "README.md", "LICENSE"]
 
 [tool.ruff]
 line-length = 100

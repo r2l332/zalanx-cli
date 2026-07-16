@@ -1,13 +1,13 @@
 name: Publish to PyPI
 
-# Publishes `zalanx-cli` to PyPI when a tag of the form `vX.Y.Z` is pushed.
+# Publishes `zablo-cli` to PyPI when a tag of the form `vX.Y.Z` is pushed.
 #
 # Uses PyPI Trusted Publishing (OIDC, no long-lived API tokens needed):
 #   https://docs.pypi.org/trusted-publishers/
 # Configure once at https://pypi.org/manage/account/publishing/ with:
-#   * PyPI project: zalanx-cli
+#   * PyPI project: zablo-cli
 #   * Owner: <your github org/user>
-#   * Repo:  zalanx-cli
+#   * Repo:  zablo-cli
 #   * Workflow: publish-pypi.yml
 #   * Environment: pypi
 
@@ -39,7 +39,7 @@ jobs:
     needs: test
     environment:
       name: pypi
-      url: https://pypi.org/p/zalanx-cli
+      url: https://pypi.org/p/zablo-cli
     permissions:
       id-token: write   # required for PyPI Trusted Publishing
       contents: read

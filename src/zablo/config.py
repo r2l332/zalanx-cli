@@ -3,8 +3,8 @@ Config resolution.
 
 Precedence (highest wins):
   1. Explicit CLI flags (--url, --key, --passphrase)
-  2. Environment variables (ZALANX_API_URL, ZALANX_API_KEY, ZALANX_PASSPHRASE)
-  3. Profile file at ~/.zalanx/config.toml
+  2. Environment variables (ZABLO_API_URL, ZABLO_API_KEY, ZABLO_PASSPHRASE)
+  3. Profile file at ~/.zablo/config.toml
   4. Defaults
 """
 
@@ -23,9 +23,9 @@ try:
 except ImportError:  # tomli_w is only needed for writing
     tomli_w = None  # type: ignore[assignment]
 
-CONFIG_DIR = Path.home() / ".zalanx"
+CONFIG_DIR = Path.home() / ".zablo"
 CONFIG_FILE = CONFIG_DIR / "config.toml"
-DEFAULT_URL = "https://api.zalanx.io"
+DEFAULT_URL = "https://api.zablo.io"
 
 
 @dataclass
@@ -37,9 +37,9 @@ class Profile:
     @classmethod
     def load(cls, profile: str = "default") -> "Profile":
         # Env vars first -- overrides everything
-        env_url = os.environ.get("ZALANX_API_URL")
-        env_key = os.environ.get("ZALANX_API_KEY")
-        env_pass = os.environ.get("ZALANX_PASSPHRASE")
+        env_url = os.environ.get("ZABLO_API_URL")
+        env_key = os.environ.get("ZABLO_API_KEY")
+        env_pass = os.environ.get("ZABLO_PASSPHRASE")
 
         # File
         file_data: dict[str, dict[str, str]] = {}
@@ -57,16 +57,16 @@ class Profile:
     def require_key(self) -> str:
         if not self.api_key:
             sys.exit(
-                "zalanx: no API key configured.\n"
-                "  Set ZALANX_API_KEY, or run: zalanx configure"
+                "zablo: no API key configured.\n"
+                "  Set ZABLO_API_KEY, or run: zablo configure"
             )
         return self.api_key
 
     def require_passphrase(self) -> str:
         if not self.passphrase:
             sys.exit(
-                "zalanx: no client passphrase configured.\n"
-                "  Set ZALANX_PASSPHRASE, or run: zalanx configure"
+                "zablo: no client passphrase configured.\n"
+                "  Set ZABLO_PASSPHRASE, or run: zablo configure"
             )
         return self.passphrase
 
@@ -77,7 +77,7 @@ def save_profile(
     api_key: Optional[str],
     passphrase: Optional[str],
 ) -> Path:
-    """Persist a profile to ~/.zalanx/config.toml with 0600 perms."""
+    """Persist a profile to ~/.zablo/config.toml with 0600 perms."""
     if tomli_w is None:
         raise RuntimeError(
             "writing config requires `tomli_w`. Install with: pip install tomli_w"

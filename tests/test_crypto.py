@@ -4,7 +4,7 @@ import base64
 
 import pytest
 
-from zalanx.crypto import EncryptedPayload, decrypt, encrypt
+from zablo.crypto import EncryptedPayload, decrypt, encrypt
 
 
 def test_roundtrip():

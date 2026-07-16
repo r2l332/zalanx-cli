@@ -1,4 +1,4 @@
-from zalanx.main import app
+from zablo.main import app
 
 if __name__ == "__main__":
     app()

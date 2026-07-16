@@ -1,4 +1,4 @@
-"""HTTP client for the Zalanx admin & secrets API."""
+"""HTTP client for the Zablo admin & secrets API."""
 
 from __future__ import annotations
 
@@ -27,7 +27,7 @@ class Client:
 
     def _default_headers(self) -> dict[str, str]:
         h = {
-            "user-agent": "zalanx-cli/0.1.0 (python)",
+            "user-agent": "zablo-cli/0.1.0 (python)",
             "accept": "application/json",
         }
         if self._key:
@@ -49,7 +49,7 @@ class Client:
         try:
             r = self._http.request(method, path, json=body)
         except httpx.RequestError as e:
-            sys.exit(f"zalanx: network error reaching {self._url}: {e}")
+            sys.exit(f"zablo: network error reaching {self._url}: {e}")
         if r.status_code == 204:
             return None
         try:
@@ -101,7 +101,7 @@ class Client:
 
     # ---- federation ----
 
-    def federate(self, subject_token: str, audience: str = "zalanx.io") -> dict[str, Any]:
+    def federate(self, subject_token: str, audience: str = "zablo.io") -> dict[str, Any]:
         return self._call(
             "POST",
             "/v1/auth/federate",

@@ -1,17 +1,17 @@
 """
-Zalanx CLI entrypoint.
+Zablo CLI entrypoint.
 
 Commands:
-  zalanx configure                                    Interactive one-time setup
-  zalanx put <path>                                   Read plaintext from stdin, encrypt, upload
-  zalanx get <path>                                   Fetch, decrypt, print to stdout
-  zalanx ls [prefix]                                  List secrets
-  zalanx rm <path>                                    Crypto-shred a secret
-  zalanx exec --env NAME=path -- <cmd> [args...]      Inject secrets as env, exec child
-  zalanx verify <path>                                Print lineage chain metadata
-  zalanx federate --token <jwt> [--audience]          Exchange upstream OIDC JWT for a session
-  zalanx whoami                                       Show current auth context
-  zalanx version
+  zablo configure                                    Interactive one-time setup
+  zablo put <path>                                   Read plaintext from stdin, encrypt, upload
+  zablo get <path>                                   Fetch, decrypt, print to stdout
+  zablo ls [prefix]                                  List secrets
+  zablo rm <path>                                    Crypto-shred a secret
+  zablo exec --env NAME=path -- <cmd> [args...]      Inject secrets as env, exec child
+  zablo verify <path>                                Print lineage chain metadata
+  zablo federate --token <jwt> [--audience]          Exchange upstream OIDC JWT for a session
+  zablo whoami                                       Show current auth context
+  zablo version
 """
 
 from __future__ import annotations
@@ -26,10 +26,10 @@ import typer
 from rich.console import Console
 from rich.table import Table
 
-from zalanx import __version__
-from zalanx.client import ApiError, Client
-from zalanx.config import DEFAULT_URL, Profile, save_profile
-from zalanx.crypto import EncryptedPayload, decrypt, encrypt, wipe_string
+from zablo import __version__
+from zablo.client import ApiError, Client
+from zablo.config import DEFAULT_URL, Profile, save_profile
+from zablo.crypto import EncryptedPayload, decrypt, encrypt, wipe_string
 
 app = typer.Typer(
     no_args_is_help=True,
@@ -42,7 +42,7 @@ out = Console()
 
 
 def _fail(msg: str, code: int = 1) -> None:
-    err.print(f"[red]zalanx:[/red] {msg}")
+    err.print(f"[red]zablo:[/red] {msg}")
     raise typer.Exit(code=code)
 
 
@@ -59,9 +59,9 @@ def _client(profile: str) -> Client:
 def configure(
     profile: str = typer.Option("default", "--profile", "-p", help="Profile name"),
 ) -> None:
-    """One-time setup. Persists to ~/.zalanx/config.toml."""
+    """One-time setup. Persists to ~/.zablo/config.toml."""
     current = Profile.load(profile)
-    out.print(f"[bold]Zalanx profile:[/bold] {profile}")
+    out.print(f"[bold]Zablo profile:[/bold] {profile}")
     api_url = typer.prompt("API URL", default=current.api_url or DEFAULT_URL)
     api_key = typer.prompt("API key (starts with vk_)", default=current.api_key or "", hide_input=True, show_default=False)
     passphrase = typer.prompt(
@@ -86,7 +86,7 @@ def put(
 ) -> None:
     """Read plaintext from stdin, encrypt client-side, upload."""
     if sys.stdin.isatty():
-        _fail("no input on stdin. Try:  echo -n 'value' | zalanx put " + path)
+        _fail("no input on stdin. Try:  echo -n 'value' | zablo put " + path)
     plaintext = sys.stdin.read().rstrip("\n")
     if not plaintext:
         _fail("stdin was empty")
@@ -223,7 +223,7 @@ def exec_(
     Plaintext never touches disk.
 
     Example:
-      zalanx exec --env DB_PASSWORD=prod/db/password -- ./deploy.sh
+      zablo exec --env DB_PASSWORD=prod/db/password -- ./deploy.sh
     """
     # Split argv after `--`
     argv = ctx.args
@@ -305,20 +305,20 @@ def federate(
         "-t",
         help="Upstream IdP JWT. If omitted, read from stdin.",
     ),
-    audience: str = typer.Option("zalanx.io", "--audience"),
+    audience: str = typer.Option("zablo.io", "--audience"),
     api_url: Optional[str] = typer.Option(None, "--url", help="Override API URL"),
     export: bool = typer.Option(
-        False, "--export", help="Print `export ZALANX_API_KEY=...` for eval"
+        False, "--export", help="Print `export ZABLO_API_KEY=...` for eval"
     ),
 ) -> None:
     """
-    Exchange an upstream OIDC JWT for a short-lived Zalanx session token.
+    Exchange an upstream OIDC JWT for a short-lived Zablo session token.
 
     Perfect for GitHub Actions, Kubernetes projected SA, etc. Example:
 
       TOKEN=$(curl -sS -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \\
-              "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=zalanx.io" | jq -r .value)
-      eval "$(zalanx federate --subject-token $TOKEN --export)"
+              "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=zablo.io" | jq -r .value)
+      eval "$(zablo federate --subject-token $TOKEN --export)"
     """
     if not subject_token:
         if sys.stdin.isatty():
@@ -336,7 +336,7 @@ def federate(
         client.close()
 
     if export:
-        sys.stdout.write(f'export ZALANX_API_KEY="{resp["access_token"]}"\n')
+        sys.stdout.write(f'export ZABLO_API_KEY="{resp["access_token"]}"\n')
         return
     out.print(f"[bold]access_token:[/bold] {resp['access_token']}")
     out.print(f"[bold]expires_in:[/bold]   {resp.get('expires_in', '?')} s")
