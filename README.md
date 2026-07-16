@@ -1,6 +1,6 @@
 # Zablo CLI
 
-[![PyPI](https://img.shields.io/pypi/v/zablo-cli.svg)](https://pypi.org/project/zablo-cli/)
+[![PyPI](https://img.shields.io/pypi/v/zablo.svg)](https://pypi.org/project/zablo-cli/)
 [![Python](https://img.shields.io/pypi/pyversions/zablo-cli.svg)](https://pypi.org/project/zablo-cli/)
 [![License](https://img.shields.io/badge/license-Apache_2.0-blue.svg)](LICENSE)
 
@@ -13,7 +13,7 @@ The server never sees your plaintext. Encryption happens on the client with your
 ## Install
 
 ```sh
-pip install zablo-cli
+pip install zablo
 ```
 
 Requires Python 3.9+. Installs two executables: `zablo` (canonical) and `zx` (short alias).
@@ -91,8 +91,8 @@ a secret written by one can be read by the other, provided the same passphrase.
 ## Development
 
 ```sh
-git clone https://github.com/zablo/zablo-cli
-cd zablo-cli
+git clone https://github.com/zablo/zablo
+cd zablo
 python -m venv .venv && source .venv/bin/activate
 pip install -e '.[dev]'
 pytest

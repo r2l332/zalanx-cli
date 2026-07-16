@@ -1,3 +1,8 @@
 """Zablo — zero-knowledge secrets for machines. CLI client."""
 
-__version__ = "0.2.0"
+from importlib.metadata import PackageNotFoundError, version as _pkg_version
+
+try:
+    __version__ = _pkg_version("zablo-cli")
+except PackageNotFoundError:  # not installed (e.g. running from source tree without build)
+    __version__ = "0.0.0+local"
