@@ -347,6 +347,120 @@ def federate(
 # whoami / version
 # ---------------------------------------------------------------------------
 
+@app.command("import")
+def import_(
+    source: str = typer.Argument(..., help=".env file, or '-' for stdin"),
+    prefix: str = typer.Option("", "--prefix", help="Prepend this path (e.g. prod/app)"),
+    lower: bool = typer.Option(True, "--lower/--upper", help="Lowercase key names in the path"),
+    dry_run: bool = typer.Option(False, "--dry-run", help="Show what would be imported"),
+    overwrite: bool = typer.Option(False, "--overwrite", help="Rotate existing paths (default skips)"),
+    profile: str = typer.Option("default", "--profile", "-p"),
+) -> None:
+    """Bulk-import a .env file into Zablo, one secret per line.
+
+    Each `KEY=value` line becomes a secret at `<prefix>/<key>`. Lines starting
+    with `#`, blank lines, and `export ` prefixes are handled. Quoted values
+    (single or double) are unwrapped. Existing paths are skipped unless
+    --overwrite is set (in which case they get a new version + lineage entry).
+
+    Examples:
+      zablo import .env --prefix prod/api
+      zablo import - --prefix dev < .env.local
+      op read op://Vault/api-env | zablo import - --prefix prod
+    """
+    import io
+
+    if source == "-":
+        if sys.stdin.isatty():
+            _fail("no input on stdin. Pipe a .env file, or pass a filename.")
+        buf = io.StringIO(sys.stdin.read())
+    else:
+        try:
+            buf = io.StringIO(open(source, "r", encoding="utf-8").read())
+        except FileNotFoundError:
+            _fail(f"file not found: {source}")
+
+    # Parse
+    entries: list[tuple[str, str]] = []
+    for lineno, raw in enumerate(buf.getvalue().splitlines(), 1):
+        line = raw.strip()
+        if not line or line.startswith("#"):
+            continue
+        if line.startswith("export "):
+            line = line[len("export ") :].strip()
+        if "=" not in line:
+            out.print(f"[yellow]skip[/yellow] line {lineno}: no '=' → {raw!r}")
+            continue
+        key, _, val = line.partition("=")
+        key = key.strip()
+        val = val.strip()
+        # Strip surrounding quotes
+        if len(val) >= 2 and val[0] == val[-1] and val[0] in ("'", '"'):
+            val = val[1:-1]
+        if not key:
+            continue
+        entries.append((key, val))
+
+    if not entries:
+        _fail("no KEY=value lines found in input")
+
+    # Build paths
+    def _path_for(k: str) -> str:
+        segment = k.lower() if lower else k
+        # Convert underscores to hyphens for cleaner path segments
+        segment = segment.replace("_", "-")
+        return f"{prefix.rstrip('/')}/{segment}" if prefix else segment
+
+    plan = [(_path_for(k), k, v) for k, v in entries]
+
+    if dry_run:
+        out.print(f"[bold]would import {len(plan)} secret(s):[/bold]")
+        for path, key, val in plan:
+            out.print(f"  {path}  [dim]← {key}[/dim] ({len(val)} bytes)")
+        return
+
+    # Fetch existing paths so we can skip vs overwrite intelligently
+    p = Profile.load(profile)
+    passphrase = p.require_passphrase()
+    with Client(p.api_url, api_key=p.require_key()) as c:
+        try:
+            existing_paths = {
+                r["path"] for r in c.list_secrets(prefix=prefix or None)
+            }
+        except ApiError as e:
+            _fail(str(e))
+
+        stored, skipped, failed = 0, 0, 0
+        for path, key, val in plan:
+            if path in existing_paths and not overwrite:
+                out.print(f"[yellow]skip[/yellow] {path}  [dim](exists; --overwrite to rotate)[/dim]")
+                skipped += 1
+                continue
+            payload = encrypt(val, passphrase)
+            wipe_string(val)
+            try:
+                c.put_secret(
+                    path=path,
+                    ciphertext_b64=payload.ciphertext,
+                    client_iv_b64=payload.iv,
+                    client_salt_b64=payload.salt,
+                    kind="standard",
+                    envelope_version=payload.version,
+                )
+                marker = "rotated" if path in existing_paths else "stored"
+                out.print(f"[green]✓[/green] {marker:8s} {path}  [dim]← {key}[/dim]")
+                stored += 1
+            except ApiError as e:
+                out.print(f"[red]✗[/red] {path}  [dim]{e}[/dim]")
+                failed += 1
+
+    out.print(
+        f"\n[bold]done:[/bold] {stored} imported, {skipped} skipped, {failed} failed"
+    )
+    if failed:
+        raise typer.Exit(1)
+
+
 @app.command()
 def whoami(
     profile: str = typer.Option("default", "--profile", "-p"),
